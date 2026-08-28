@@ -44,6 +44,11 @@
     datenschutzText:  'Datenschutzhinweise',
     datenschutzUrl:   'https://bsteuern.com/datenschutz',
 
+    /* Farbe fuer klickbare Elemente. Ersetzt die Unterstreichung als
+       Erkennungsmerkmal. Auf '#0E0C1C' setzen, wenn Links wie Fliesstext
+       aussehen sollen. */
+    linkColor:   '#3D2BD5',
+
     website:     'bsteuern.com',
     websiteUrl:  'https://bsteuern.com',
     webTail:     'radikal anders, digital & selbstorganisiert',
@@ -136,7 +141,8 @@
     name:'', role:'', phone:'', email:'',
     ctaText: KANZLEI.ctaText,
     ctaUrl:  KANZLEI.ctaUrl,
-    showRole:true, showPhone:true, showCta:true,
+    linkedin:'',
+    showRole:true, showPhone:true, showCta:true, showLinkedin:false,
     colorIndex:0,
     emblemPick:null,
     sugPage:0,
@@ -230,7 +236,7 @@
     ];
     if(KANZLEI.zeigeKammer) out.push(esc(KANZLEI.kammer));
     if(KANZLEI.zeigeDatenschutz && safeUrl(KANZLEI.datenschutzUrl)){
-      out.push('<a href="' + esc(KANZLEI.datenschutzUrl) + '" style="color:inherit;text-decoration:underline">' + esc(KANZLEI.datenschutzText) + '</a>');
+      out.push('<a href="' + esc(KANZLEI.datenschutzUrl) + '" style="color:' + (KANZLEI.linkColor || 'inherit') + ';text-decoration:none">' + esc(KANZLEI.datenschutzText) + '</a>');
     }
     return out;
   }
@@ -256,42 +262,47 @@
   }
 
   function fullHtml(){
-    var ink = '#0E0C1C', mid = '#565560', line = '#E9E9EB';
+    var ink = '#0E0C1C', mid = '#75747F', line = '#E9E9EB';
+    var lk  = KANZLEI.linkColor || ink;
     var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
-    var cta = safeUrl(S.ctaUrl);
+    var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
+    var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="512" style="width:512px;border-collapse:collapse;font-family:' + FONT + '">' +
       '<tr><td valign="top" width="110" style="width:110px">' + frame(110,134) + '</td>' +
       '<td valign="top" width="402" style="width:402px;padding:3px 0 0 26px">' +
-      '<div style="font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:' + ink + ';padding-bottom:' + (S.showRole ? '5px' : '14px') + '">' + esc(S.name) + '</div>' +
+      '<div style="font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:' + ink + ';padding-bottom:' + (S.showRole && S.role ? '5px' : '14px') + '">' + esc(S.name) + '</div>' +
       (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:' + ink + ';padding-bottom:14px">' + esc(S.role) + '</div>' : '') +
       '<div style="font-size:13px;line-height:1.7">' +
       (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';font-weight:500;text-decoration:none">' + esc(S.phone) + '</a><br>' : '') +
-      '<a href="mailto:' + esc(S.email) + '" style="color:' + ink + ';font-weight:500;text-decoration:underline">' + esc(S.email) + '</a><br>' +
-      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="color:' + ink + ';font-weight:500;text-decoration:underline">' + esc(KANZLEI.website) + '</a><br>' +
-      '<span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' +
+      '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><br>' +
+      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
+      (S.showLinkedin && li ? '<span style="color:' + mid + '"> &middot; </span><a href="' + esc(li) + '" style="' + a + '">LinkedIn</a>' : '') +
+      '<br><span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' +
       '</div>' +
       (S.showCta && cta && S.ctaText
         ? '<div style="padding:14px 0 0">' + hr(376, line) + '</div>' +
-          '<div style="padding:12px 0 0"><a href="' + esc(cta) + '" style="font-size:13px;font-weight:500;color:' + ink + ';text-decoration:underline">' + esc(S.ctaText) + ' &rarr;</a></div>'
+          '<div style="padding:12px 0 0"><a href="' + esc(cta) + '" style="font-size:13px;' + a + '">' + esc(S.ctaText) + ' &rarr;</a></div>'
         : '') +
       '</td></tr>' +
       '<tr><td colspan="2" style="padding-top:18px">' + hr(512, line) +
-      '<div style="padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' + legalLines().join('<br>') + '</div>' +
+      '<div style="padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' + legalLines() .join('<br>') + '</div>' +
       '</td></tr></table>';
   }
 
   function shortHtml(){
-    var ink = '#0E0C1C', mid = '#565560', line = '#E9E9EB';
+    var ink = '#0E0C1C', mid = '#75747F', line = '#E9E9EB';
+    var lk  = KANZLEI.linkColor || ink;
     var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
+    var a   = 'color:' + lk + ';text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="500" style="width:500px;border-collapse:collapse;font-family:' + FONT + '">' +
       '<tr><td valign="top" width="74" style="width:74px">' + frame(74,90) + '</td>' +
       '<td valign="top" style="padding-left:16px">' +
       '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
-      (S.showRole && S.role ? '<span style="color:' + mid + '">, ' + esc(S.role) + '</span>' : '') + '</div>' +
+      (S.showRole && S.role ? '<span style="color:' + mid + ';font-size:11px;letter-spacing:.07em"> &middot; ' + esc(S.role) + '</span>' : '') + '</div>' +
       '<div style="font-size:13px;line-height:1.7">' +
-      (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';text-decoration:none">' + esc(S.phone) + '</a><span style="color:' + mid + '"> · </span>' : '') +
-      '<a href="mailto:' + esc(S.email) + '" style="color:' + ink + ';text-decoration:underline">' + esc(S.email) + '</a><span style="color:' + mid + '"> · </span>' +
-      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="color:' + ink + ';text-decoration:underline">' + esc(KANZLEI.website) + '</a>' +
+      (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';text-decoration:none">' + esc(S.phone) + '</a><span style="color:' + mid + '"> &middot; </span>' : '') +
+      '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><span style="color:' + mid + '"> &middot; </span>' +
+      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
       '</div>' +
       '<div style="padding-top:10px">' + hr(390, line) + '</div>' +
       '<div style="padding-top:8px;font-size:11px;line-height:1.6;color:' + mid + '">' + legalLines().join('<br>') + '</div>' +
@@ -307,6 +318,7 @@
     l.push(S.email);
     if(S.variant === 'full'){
       l.push(KANZLEI.website + ' - ' + KANZLEI.webTail);
+      if(S.showLinkedin && safeUrl(S.linkedin)) l.push('LinkedIn: ' + S.linkedin);
       if(S.showCta && S.ctaText && safeUrl(S.ctaUrl)) l.push(S.ctaText + ': ' + S.ctaUrl);
     } else {
       l.push(KANZLEI.website);
@@ -422,8 +434,23 @@
     opts = opts || {};
     var inp = el('input', {
       type:'text', value:S[key], placeholder:opts.ph || '', 'data-k':key,
-      class: opts.bad ? 'is-bad' : '',
-      oninput:function(e){ S[key] = e.target.value; scheduleName(key); }
+      class: (opts.bad ? 'is-bad' : '') + (opts.upper ? ' is-upper' : ''),
+      oninput:function(e){
+        var v = e.target.value;
+        if(opts.upper){
+          /* Grossschreibung ist gesetzt, nicht optional. Cursorposition
+             bleibt erhalten, damit man auch mittendrin tippen kann. */
+          var up = v.toLocaleUpperCase('de-DE');
+          if(up !== v){
+            var pos = e.target.selectionStart;
+            e.target.value = up;
+            try{ e.target.setSelectionRange(pos, pos); }catch(err){}
+            v = up;
+          }
+        }
+        S[key] = v;
+        scheduleName(key);
+      }
     });
     return el('label', { class:'sg-field' }, [ label ? el('span', { text:label }) : null, inp ]);
   }
@@ -521,11 +548,17 @@
       ]),
       el('div', { class:'sg-sub' }, [
         check('Titel / Funktion', 'showRole'),
-        S.showRole ? field('', 'role', { ph:'z. B. Steuerfachangestellte' }) : null
+        S.showRole ? field('', 'role', { ph:'STEUERFACHANGESTELLTE', upper:true }) : null,
+        S.showRole ? el('div', { class:'sg-note', text:'Wird immer in Großbuchstaben gesetzt.' }) : null
       ]),
       el('div', { class:'sg-sub' }, [
         check('Telefon', 'showPhone'),
         S.showPhone ? field('', 'phone', { ph:'+49 30 ...' }) : null
+      ]),
+      el('div', { class:'sg-sub' }, [
+        check('LinkedIn', 'showLinkedin'),
+        S.showLinkedin ? field('', 'linkedin', { ph:'https://www.linkedin.com/in/…' }) : null,
+        S.showLinkedin ? el('div', { class:'sg-note', text:'Erscheint als Wort „LinkedIn" neben der Website, nur in der langen Fassung.' }) : null
       ]),
       el('div', { class:'sg-sub' }, [
         check('Termin-Zeile', 'showCta'),

@@ -107,3 +107,4 @@
 #sig-app .sg-sugs button:hover{border-color:var(--ink)}
 #sig-app .sg-sugs button[aria-pressed=true]{border-color:var(--ind);box-shadow:inset 0 0 0 2px var(--ind)}
 #sig-app .sg-sugs img{width:88px;height:107px;display:block}
+#sig-app input[type=text].is-upper{text-transform:uppercase;letter-spacing:.03em}
