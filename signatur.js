@@ -139,6 +139,7 @@
     showRole:true, showPhone:true, showCta:true,
     colorIndex:0,
     emblemPick:null,
+    sugPage:0,
     emblemsOpen:false,
     variant:'full',
     client:'gmail',
@@ -147,9 +148,36 @@
     imgState:'idle'   /* idle | checking | ok | fail */
   };
 
+  /* Aus dem Namen wird eine feste, aber gut gemischte Reihenfolge aller
+     35 Muster abgeleitet. Daraus zeigen wir immer drei auf einmal.
+     Gleicher Name ergibt immer dieselben Vorschlaege. */
+  function seeded(seed){
+    var a = seed | 0;
+    return function(){
+      a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function shuffledPool(){
+    var r = seeded(hash(S.name || 'b') + 17), pool = [], i, j, t;
+    for(i = 0; i < PATTERN_COUNT; i++) pool.push(i);
+    for(i = pool.length - 1; i > 0; i--){
+      j = Math.floor(r() * (i + 1));
+      t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    return pool;
+  }
+  function suggestions(){
+    var pool = shuffledPool(), start = (S.sugPage * 3) % PATTERN_COUNT, out = [], k;
+    for(k = 0; k < 3; k++) out.push(pool[(start + k) % PATTERN_COUNT]);
+    return out;
+  }
+
   function emblemIndex(){
     if(S.emblemPick !== null) return S.emblemPick;
-    return hash(S.name || 'b') % PATTERN_COUNT;
+    return suggestions()[0];
   }
   function emblemUrl(){
     if(FIXED_MODE) return String(EMBLEM_URLS[PALETTE[S.colorIndex].key.toLowerCase()] || '');
@@ -517,30 +545,39 @@
       }))
     ]);
 
+    var active = emblemIndex();
+    var sug = suggestions();
+    if(S.emblemPick !== null && sug.indexOf(S.emblemPick) < 0) sug.unshift(S.emblemPick);
+
     var emblemKids = [
-      el('div', { class:'sg-rowline sg-between' }, [
-        el('span', { class:'sg-tag', text:'Emblem' }),
+      el('div', { class:'sg-rowline' }, [ el('span', { class:'sg-tag', text:'Emblem' }) ]),
+      el('div', { class:'sg-note', text:'Such dir eins aus. Es ist reine Geschmackssache, alle passen zur Marke.' }),
+      el('div', { class:'sg-sugs' }, sug.map(function(idx){
+        return el('button', { type:'button', 'aria-pressed': idx === active ? 'true' : 'false',
+          title:'Emblem ' + (idx + 1),
+          onclick:function(){ set({ emblemPick:idx }, true); } }, [
+          el('img', { src:EMBLEM_BASE + emblemFile(idx, S.colorIndex), alt:'' })
+        ]);
+      })),
+      el('div', { class:'sg-btns' }, [
+        el('button', { type:'button', class:'sg-btn is-ghost is-sm', text:'Andere Vorschläge',
+          onclick:function(){ set({ sugPage:S.sugPage + 1, emblemPick:null }, true); } }),
         el('button', { type:'button', class:'sg-btn is-ghost is-sm',
-          text: S.emblemsOpen ? 'Auswahl schließen' : 'anderes Emblem wählen',
+          text: S.emblemsOpen ? 'Auswahl schließen' : 'Alle 35 zeigen',
           onclick:function(){ set({ emblemsOpen:!S.emblemsOpen }); } })
-      ]),
-      el('div', { class:'sg-note', text:'Wird automatisch aus deinem Namen berechnet. Du musst hier nichts tun.' })
+      ])
     ];
     if(S.emblemsOpen){
       var picks = [];
-      for(var k=0;k<PATTERN_COUNT;k++){
+      for(var k = 0; k < PATTERN_COUNT; k++){
         (function(idx){
-          picks.push(el('button', { type:'button', 'aria-pressed': idx === emblemIndex() ? 'true' : 'false',
-            title:'Emblem ' + (idx+1), onclick:function(){ set({ emblemPick:idx }, true); } }, [
+          picks.push(el('button', { type:'button', 'aria-pressed': idx === active ? 'true' : 'false',
+            title:'Emblem ' + (idx + 1), onclick:function(){ set({ emblemPick:idx }, true); } }, [
             el('img', { src:EMBLEM_BASE + emblemFile(idx, S.colorIndex), alt:'', loading:'lazy' })
           ]));
         })(k);
       }
       emblemKids.push(el('div', { class:'sg-emblems' }, picks));
-      if(S.emblemPick !== null){
-        emblemKids.push(el('button', { type:'button', class:'sg-btn is-ghost is-sm',
-          text:'zurück zur automatischen Auswahl', onclick:function(){ set({ emblemPick:null }, true); } }));
-      }
     }
     var emblem = FIXED_MODE ? null : el('div', { class:'sg-block' }, emblemKids);
 
@@ -628,7 +665,7 @@
     var head = el('div', { class:'sg-head' }, [
       el('div', {}, [ el('span', { class:'sg-tag is-ind', text:'b’steuern · intern' }) ]),
       el('h1', { class:'sg-h1', text:'Signatur-Generator' }),
-      el('p', { class:'sg-lead', text:'Name und E-Mail eintragen, unten kopieren, im Mailprogramm einfügen. Dauert zwei Minuten. Dein Emblem entsteht automatisch aus deinem Namen. Alles andere ist gesetzt.' })
+      el('p', { class:'sg-lead', text:'Name und E-Mail eintragen, ein Emblem aussuchen, unten kopieren, im Mailprogramm einfügen. Dauert zwei Minuten. Alles andere ist gesetzt.' })
     ]);
 
     root.replaceChildren(el('div', { class:'sg-wrap' }, [ head, el('div', { class:'sg-cols' }, [ leftCol, rightCol ]) ]));

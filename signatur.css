@@ -99,3 +99,11 @@
 #sig-app .sg-sub{display:flex;flex-direction:column;gap:.75rem;border:0;padding:0}
 #sig-app .sg-between{justify-content:space-between}
 #sig-app .sg-h2{font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+
+/* Emblem-Vorschlaege */
+#sig-app .sg-sugs{display:flex;flex-wrap:wrap;gap:.75rem}
+#sig-app .sg-sugs button{padding:0;border:1px solid var(--line);background:#fff;cursor:pointer;line-height:0;
+  transition:border-color .18s ease}
+#sig-app .sg-sugs button:hover{border-color:var(--ink)}
+#sig-app .sg-sugs button[aria-pressed=true]{border-color:var(--ind);box-shadow:inset 0 0 0 2px var(--ind)}
+#sig-app .sg-sugs img{width:88px;height:107px;display:block}
