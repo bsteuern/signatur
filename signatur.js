@@ -320,6 +320,47 @@
       '</td></tr></table>';
   }
 
+  /* --- Fassung fuer Apple Mail -------------------------------------
+     Der Signatur-Editor von Apple Mail ist ein Rich-Text-Feld, kein
+     HTML-Editor. Beim Einfuegen wandelt er das Markup um und verwirft,
+     was er nicht abbilden kann. Bekannte Bruchstellen sind
+     verschachtelte Tabellen und colspan-Zeilen. Beide vermeiden wir
+     hier: genau eine flache Tabelle mit zwei Zellen, Trennlinien als
+     border-top auf einem div.
+     Fuer Gmail und Outlook bleibt die verschachtelte Fassung, weil sie
+     dort die zuverlaessigere ist, besonders in Outlook fuer Windows. */
+  function appleHtml(){
+    var ink = '#0E0C1C', mid = '#75747F', line = '#E9E9EB';
+    var lk  = KANZLEI.linkColor || ink;
+    var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
+    var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
+    var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
+    var kurz = S.variant === 'short';
+    var iw = kurz ? 96 : 130, ih = kurz ? 117 : 158, pad = kurz ? 20 : 30;
+
+    return '<div style="width:600px;font-family:' + FONT + '">' +
+      '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
+      '<tr>' +
+      '<td width="' + iw + '" valign="top" style="width:' + iw + 'px">' + frame(iw, ih) + '</td>' +
+      '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding-left:' + pad + 'px">' +
+      '<div style="font-size:19px;font-weight:600;line-height:1.25;color:' + ink + '">' + esc(S.name) + '</div>' +
+      (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:' + ink + ';padding-top:5px">' + esc(S.role) + '</div>' : '') +
+      '<div style="font-size:13px;line-height:1.7;padding-top:14px">' +
+      (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';font-weight:500;text-decoration:none">' + esc(S.phone) + '</a><br>' : '') +
+      '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><br>' +
+      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
+      (!kurz && S.showLinkedin && li ? '<span style="color:' + mid + '"> &middot; </span><a href="' + esc(li) + '" style="' + a + '">LinkedIn</a>' : '') +
+      (!kurz ? '<br><span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' : '') +
+      '</div>' +
+      (!kurz && S.showCta && cta && S.ctaText
+        ? '<div style="border-top:1px solid ' + line + ';margin-top:14px;padding-top:12px;font-size:13px"><a href="' + esc(cta) + '" style="' + a + '">' + esc(S.ctaText) + ' &rarr;</a></div>'
+        : '') +
+      '</td></tr></table>' +
+      '<div style="border-top:1px solid ' + line + ';margin-top:20px;padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' +
+      legalLines().join('<br>') + '</div>' +
+      '</div>';
+  }
+
   function sigHtml(){ return S.variant === 'short' ? shortHtml() : fullHtml(); }
 
   function plainText(){
@@ -338,6 +379,13 @@
   }
 
   function fileHtml(){
+    if(S.client === 'apple'){
+      /* Bewusst ein reines Fragment ohne html-, head- und body-Tag.
+         Safari zeigt es trotzdem an, und beim Weg ueber die
+         Signaturdatei kann man einfach alles markieren, statt den
+         Bereich zwischen den body-Tags heraussuchen zu muessen. */
+      return '<meta charset="utf-8">\n' + appleHtml() + '\n';
+    }
     return '<!doctype html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<title>Signatur ' +
       esc(S.name) + '</title>\n</head>\n<body style="margin:0;padding:32px;background:#ffffff">\n' +
       sigHtml() + '\n</body>\n</html>\n';
@@ -512,8 +560,11 @@
         : 'In Mail bei jedem Konto die passende Signatur auswählen.');
     var list = cl === 'apple'
       ? ['Unten auf „Datei ' + st + ' laden“ drücken.',
-         'Die geladene Datei im Browser öffnen und alles markieren.',
-         'Mail öffnen: Einstellungen, Signaturen, neue Signatur anlegen, „' + sigName + '“ nennen und die Auswahl hineinziehen.',
+         'Die geladene Datei mit Safari öffnen, nicht mit Chrome. Chrome gibt das Bild beim Kopieren nicht mit.',
+         'In Safari alles markieren mit cmd A, dann kopieren mit cmd C.',
+         'Mail öffnen: Einstellungen, Signaturen. Links das b’steuern-Konto wählen, unten auf das Plus, die neue Signatur „' + sigName + '“ nennen.',
+         'Wichtig: rechts unten den Haken bei „Standardschrift für E-Mails verwenden“ entfernen. Bleibt er gesetzt, wirft Mail Bild und Formatierung weg.',
+         'Ins Signaturfeld klicken, mit cmd A alles markieren und löschen, dann einfügen mit cmd V.',
          last]
       : ['Unten auf „Fassung ' + st + ' kopieren“ drücken.',
          cl === 'gmail'
@@ -693,6 +744,7 @@
       S.finished ? el('div', { class:'sg-done', text:'Fertig. Letzter Schritt, und der ist der wichtigste: schick dir selbst eine Mail und prüf, ob die weiße Kachel mit dem Muster ankommt. Wenn nicht, sag Bescheid, statt es so zu lassen.' }) : null,
       el('div', { class:'sg-block' }, [
         el('div', { class:'sg-lbl', text:'Falls etwas klemmt' }),
+        S.client === 'apple' ? el('div', { class:'sg-note', text:'Kommt das Bild in Apple Mail trotzdem nicht mit, hilft nur der Weg über die Signaturdatei. Die Anleitung dazu liegt in APPLE-MAIL.md, oder frag Florian.' }) : null,
         el('div', { class:'sg-btns' }, [
           el('button', { type:'button', class:'sg-btn is-sm', 'data-needs-copy':'1', disabled:!canCopy(),
             text:'HTML-Code kopieren', onclick:copyCode }),
