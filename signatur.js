@@ -40,6 +40,15 @@
     zeigeKammer:      true,
     kammer:           'Zuständige Aufsichtsbehörde: «Steuerberaterkammer»',
 
+    /* In der Kurzfassung fuer Antworten nur die Pflichtangaben nach
+       § 35a GmbHG zeigen, also ohne Kammer und Datenschutzlink.
+       Spart zwei Zeilen in jedem Mailverlauf.
+       § 35a verlangt Firma und Sitz, Registergericht mit Nummer und die
+       Geschaeftsfuehrer. Kammer und Datenschutzlink fallen nicht darunter,
+       stehen aber weiterhin in jeder Erstmail und im Impressum.
+       Von Chris bestaetigen lassen. */
+    kurzNurPflichtangaben: true,
+
     zeigeDatenschutz: true,
     datenschutzText:  'Datenschutzhinweise',
     datenschutzUrl:   'https://bsteuern.com/datenschutz',
@@ -234,6 +243,7 @@
       esc(KANZLEI.register),
       esc(KANZLEI.fuehrung)
     ];
+    if(KANZLEI.kurzNurPflichtangaben && S.variant === 'short') return out;
     if(KANZLEI.zeigeKammer) out.push(esc(KANZLEI.kammer));
     if(KANZLEI.zeigeDatenschutz && safeUrl(KANZLEI.datenschutzUrl)){
       out.push('<a href="' + esc(KANZLEI.datenschutzUrl) + '" style="color:' + (KANZLEI.linkColor || 'inherit') + ';text-decoration:none">' + esc(KANZLEI.datenschutzText) + '</a>');
@@ -267,9 +277,9 @@
     var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
     var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
-    return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="512" style="width:512px;border-collapse:collapse;font-family:' + FONT + '">' +
-      '<tr><td valign="top" width="110" style="width:110px">' + frame(110,134) + '</td>' +
-      '<td valign="top" width="402" style="width:402px;padding:3px 0 0 26px">' +
+    return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
+      '<tr><td valign="top" width="130" style="width:130px">' + frame(130,158) + '</td>' +
+      '<td valign="top" width="470" style="width:470px;padding:4px 0 0 30px">' +
       '<div style="font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:' + ink + ';padding-bottom:' + (S.showRole && S.role ? '5px' : '14px') + '">' + esc(S.name) + '</div>' +
       (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:' + ink + ';padding-bottom:14px">' + esc(S.role) + '</div>' : '') +
       '<div style="font-size:13px;line-height:1.7">' +
@@ -280,11 +290,11 @@
       '<br><span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' +
       '</div>' +
       (S.showCta && cta && S.ctaText
-        ? '<div style="padding:14px 0 0">' + hr(376, line) + '</div>' +
+        ? '<div style="padding:14px 0 0">' + hr(414, line) + '</div>' +
           '<div style="padding:12px 0 0"><a href="' + esc(cta) + '" style="font-size:13px;' + a + '">' + esc(S.ctaText) + ' &rarr;</a></div>'
         : '') +
       '</td></tr>' +
-      '<tr><td colspan="2" style="padding-top:18px">' + hr(512, line) +
+      '<tr><td colspan="2" style="padding-top:22px">' + hr(600, line) +
       '<div style="padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' + legalLines() .join('<br>') + '</div>' +
       '</td></tr></table>';
   }
@@ -294,9 +304,9 @@
     var lk  = KANZLEI.linkColor || ink;
     var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
     var a   = 'color:' + lk + ';text-decoration:none';
-    return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="500" style="width:500px;border-collapse:collapse;font-family:' + FONT + '">' +
-      '<tr><td valign="top" width="74" style="width:74px">' + frame(74,90) + '</td>' +
-      '<td valign="top" style="padding-left:16px">' +
+    return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
+      '<tr><td valign="top" width="96" style="width:96px">' + frame(96,117) + '</td>' +
+      '<td valign="middle" width="504" style="width:504px;padding-left:20px">' +
       '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
       (S.showRole && S.role ? '<span style="color:' + mid + ';font-size:11px;letter-spacing:.07em"> &middot; ' + esc(S.role) + '</span>' : '') + '</div>' +
       '<div style="font-size:13px;line-height:1.7">' +
@@ -304,8 +314,9 @@
       '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><span style="color:' + mid + '"> &middot; </span>' +
       '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
       '</div>' +
-      '<div style="padding-top:10px">' + hr(390, line) + '</div>' +
-      '<div style="padding-top:8px;font-size:11px;line-height:1.6;color:' + mid + '">' + legalLines().join('<br>') + '</div>' +
+      '</td></tr>' +
+      '<tr><td colspan="2" style="padding-top:14px">' + hr(600, line) +
+      '<div style="padding-top:10px;font-size:11px;line-height:1.6;color:' + mid + '">' + legalLines().join('<br>') + '</div>' +
       '</td></tr></table>';
   }
 
