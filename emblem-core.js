@@ -83,37 +83,34 @@ function drawPolaroid(ctx, cells, pal, logoImg, scale){
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0,0,w,h);
 
-  /* Ueberlappung gegen Blitzer.
-     Zwei aneinandergrenzende Formen erzeugen an der Naht eine helle
-     Linie, weil die Kantenglättung beider Formen dort nur teilweise
-     deckt. Das passiert immer, wenn ein Bogen an ein Quadrat stoesst,
-     und zusaetzlich bei gebrochenen Zellgroessen. Jede Zelle wird
-     deshalb um B Pixel groesser gezeichnet als ihr Raster. Da von
-     links oben nach rechts unten gezeichnet wird, deckt die jeweils
-     spaeter gezeichnete Nachbarzelle den Ueberstand wieder zu. */
-  var B = Math.max(1.5, S*0.022);
+  /* Keine Ueberlappung, keine Vergroesserung der Formen.
+     Bei ganzzahliger Zellgroesse liegt jede gerade Kante exakt auf einer
+     Pixelgrenze, dort kann keine Naht entstehen. Deshalb muss die
+     Skalierung so gewaehlt werden, dass 10k, 30k, 6k und 22k ganze
+     Zahlen ergeben, also ein Vielfaches von 0,5. Bei gebrochenen
+     Skalierungen entstehen echte Naehte.
+     Frueher stand hier eine Ueberlappung. Die hat Kreise und Boegen
+     sichtbar vergroessert und wurde entfernt. */
 
   for(var i=0;i<3;i++) for(var j=0;j<3;j++){
     var x = cells[i*3+j], px = pad + j*S, py = pad + i*S;
     ctx.fillStyle = pal[x.f];
     ctx.beginPath();
     if(x.cor==='c'){
-      ctx.arc(px+S/2, py+S/2, S/2+B, 0, Math.PI*2);
+      ctx.arc(px+S/2, py+S/2, S/2, 0, Math.PI*2);
     } else if(x.cor){
-      var sz = S + 2*B, r = [0,0,0,0];
-      if(x.cor===1) r[0]=sz;
-      if(x.cor===2) r[1]=sz;
-      if(x.cor===3) r[2]=sz;
-      if(x.cor===4) r[3]=sz;
-      if(ctx.roundRect) ctx.roundRect(px-B,py-B,sz,sz,r); else ctx.rect(px-B,py-B,sz,sz);
+      var r = [0,0,0,0];
+      if(x.cor===1) r[0]=S;
+      if(x.cor===2) r[1]=S;
+      if(x.cor===3) r[2]=S;
+      if(x.cor===4) r[3]=S;
+      if(ctx.roundRect) ctx.roundRect(px,py,S,S,r); else ctx.rect(px,py,S,S);
     } else {
-      ctx.rect(px-B,py-B,S+2*B,S+2*B);
+      ctx.rect(px,py,S,S);
     }
     ctx.fill();
   }
-  /* Wortmarke seitenverhaeltnistreu in das Feld 90 x 22 einpassen
-     und darin vertikal zentrieren. Das SVG ist 118 x 22, ein festes
-     Zeichnen auf 90 x 22 wuerde es stauchen. */
+
   if(logoImg){
     var nw = logoImg.naturalWidth  || logoImg.width  || logoW;
     var nh = logoImg.naturalHeight || logoImg.height || logoH;
