@@ -30,7 +30,7 @@
      liegt hier ein Satz, dessen natuerliche Groesse bereits die
      Anzeigegroesse ist, 130 x 158. Damit kann die Groesse nicht mehr
      kaputtgehen, egal was der Editor mit dem Markup macht. */
-  var EMBLEM_BASE_APPLE = 'embleme-apple/';
+  var EMBLEM_BASE_APPLE = 'bsteuern-embleme-apple/';
 
   /* Kanzleiangaben. Jeder Wert mit einem Platzhalter in
      Guillemets blockiert das Kopieren, bis er ersetzt ist. */
@@ -85,7 +85,7 @@
   var OVR = window.BSTEUERN_SIG_CONFIG || {};
   if(typeof OVR.emblemBase === 'string' && OVR.emblemBase) EMBLEM_BASE = OVR.emblemBase;
   if(typeof OVR.emblemBaseApple === 'string' && OVR.emblemBaseApple) EMBLEM_BASE_APPLE = OVR.emblemBaseApple;
-  else if(OVR.emblemBase) EMBLEM_BASE_APPLE = String(OVR.emblemBase).replace(/embleme\/?$/, 'embleme-apple/');
+  else if(OVR.emblemBase) EMBLEM_BASE_APPLE = String(OVR.emblemBase).replace(/embleme\/?$/, 'bsteuern-embleme-apple/');
   if(OVR.kanzlei) for(var _k in OVR.kanzlei) KANZLEI[_k] = OVR.kanzlei[_k];
   if(EMBLEM_BASE.slice(-1) !== '/') EMBLEM_BASE += '/';
   if(EMBLEM_BASE_APPLE.slice(-1) !== '/') EMBLEM_BASE_APPLE += '/';
