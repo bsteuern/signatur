@@ -283,12 +283,17 @@
            ' style="height:1px;background:' + color + ';font-size:0;line-height:0">&nbsp;</td></tr></table>';
   }
 
-  /* Der obere Abstand der Textspalte steuert, wie hoch das Emblem
-     gegenueber der Namenszeile steht. Die farbige Flaeche des Emblems
-     beginnt 12 px unter der Oberkante, die Versalien beginnen bei
-     Abstand + 5 px. Der Versatz ist also Abstand minus 7.
-     Bei 12 px steht das Emblem 5 px hoeher als der Name.
-     Bei 7 px waeren beide buendig. */
+  /* Vertikale Ausrichtung von Emblem und Namenszeile.
+
+     Die Kachel hat rundum einen weissen Rand von 10 von 110 Einheiten.
+     Bei 130 px Anzeigebreite sind das 12 px, bei 96 px sind es 9 px.
+     Erst darunter beginnt die farbige Flaeche.
+     Die Versalien der Namenszeile beginnen bei Textabstand + 5 px.
+
+     Regel: Textabstand = weisser Rand der Kachel, also Math.round(iw*10/110).
+     Dann steht das Emblem in jeder Fassung genau 5 px hoeher als der Name.
+     Lange Fassung 12 px, Kurzfassung 9 px.
+     Wer den Versatz aendern will, addiert oder subtrahiert hier. */
   function fullHtml(){
     var ink = '#0E0C1C', mid = '#75747F', line = '#E9E9EB';
     var lk  = KANZLEI.linkColor || ink;
@@ -324,7 +329,7 @@
     var a   = 'color:' + lk + ';text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
       '<tr><td valign="top" width="96" style="width:96px">' + frame(96,117) + '</td>' +
-      '<td valign="top" width="504" style="width:504px;padding:12px 0 0 20px">' +
+      '<td valign="top" width="504" style="width:504px;padding:9px 0 0 20px">' +
       '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
       (S.showRole && S.role ? '<span style="color:' + mid + ';font-size:11px;letter-spacing:.07em"> &middot; ' + esc(S.role) + '</span>' : '') + '</div>' +
       '<div style="font-size:13px;line-height:1.7">' +
@@ -357,12 +362,13 @@
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     var kurz = S.variant === 'short';
     var iw = kurz ? 96 : 130, ih = kurz ? 117 : 158, pad = kurz ? 20 : 30;
+    var oben = Math.round(iw*10/110);   /* siehe Kommentar ueber fullHtml */
 
     return '<div style="width:600px;font-family:' + FONT + '">' +
       '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
       '<tr>' +
       '<td width="' + iw + '" valign="top" style="width:' + iw + 'px">' + frame(iw, ih) + '</td>' +
-      '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding:12px 0 0 ' + pad + 'px">' +
+      '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding:' + oben + 'px 0 0 ' + pad + 'px">' +
       /* Kurzfassung einzeilig, genau wie in der Fassung fuer Gmail und
          Outlook, damit die Antwortsignatur ueberall gleich aussieht. */
       (kurz
@@ -592,7 +598,7 @@
         ? 'In Gmail bei „Standardeinstellungen für Signatur“ links „Neue Mails“ und rechts „Antworten“ auswählen.'
         : cl === 'outlook'
         ? 'In Outlook unter „Standardsignaturen auswählen“ die eine für neue Mails, die andere für Antworten setzen.'
-        : 'In Mail bei jedem Konto die passende Signatur auswählen.');
+        : 'In Mail unten bei „Signatur auswählen“ die Kurzfassung als Standard setzen. Apple Mail kann nur eine Signatur je Konto, siehe Hinweis unten.');
     var list = cl === 'apple'
       ? ['Unten auf „Datei ' + st + ' laden“ drücken.',
          'Die geladene Datei mit Chrome öffnen, nicht mit Safari. Safari kopiert das Bild als lokalen Verweis, der in Mail nicht ankommt.',
@@ -779,7 +785,8 @@
       S.finished ? el('div', { class:'sg-done', text:'Fertig. Letzter Schritt, und der ist der wichtigste: schick dir selbst eine Mail und prüf, ob die weiße Kachel mit dem Muster ankommt. Wenn nicht, sag Bescheid, statt es so zu lassen.' }) : null,
       el('div', { class:'sg-block' }, [
         el('div', { class:'sg-lbl', text:'Falls etwas klemmt' }),
-        S.client === 'apple' ? el('div', { class:'sg-note', text:'Kommt das Bild in Apple Mail trotzdem nicht mit, hilft nur der Weg über die Signaturdatei. Die Anleitung dazu liegt in APPLE-MAIL.md, oder frag Florian.' }) : null,
+        S.client === 'apple' ? el('div', { class:'sg-note', text:'Apple Mail kann anders als Gmail und Outlook nur eine Signatur je Konto setzen, nicht getrennt für neue Mails und Antworten. Empfehlung: nur die Kurzfassung installieren und als Standard setzen. Sie enthält alle Pflichtangaben. Wer beide will, wechselt beim Schreiben über das Aufklappmenü „Signatur“ unter der Betreffzeile.' }) : null,
+      S.client === 'apple' ? el('div', { class:'sg-note', text:'Kommt das Bild nicht mit, hilft der Weg über die Signaturdatei. Anleitung in APPLE-MAIL.md.' }) : null,
         el('div', { class:'sg-btns' }, [
           el('button', { type:'button', class:'sg-btn is-sm', 'data-needs-copy':'1', disabled:!canCopy(),
             text:'HTML-Code kopieren', onclick:copyCode }),
