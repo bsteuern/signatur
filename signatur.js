@@ -283,6 +283,12 @@
            ' style="height:1px;background:' + color + ';font-size:0;line-height:0">&nbsp;</td></tr></table>';
   }
 
+  /* Der obere Abstand der Textspalte steuert, wie hoch das Emblem
+     gegenueber der Namenszeile steht. Die farbige Flaeche des Emblems
+     beginnt 12 px unter der Oberkante, die Versalien beginnen bei
+     Abstand + 5 px. Der Versatz ist also Abstand minus 7.
+     Bei 12 px steht das Emblem 5 px hoeher als der Name.
+     Bei 7 px waeren beide buendig. */
   function fullHtml(){
     var ink = '#0E0C1C', mid = '#75747F', line = '#E9E9EB';
     var lk  = KANZLEI.linkColor || ink;
@@ -291,7 +297,7 @@
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
       '<tr><td valign="top" width="130" style="width:130px">' + frame(130,158) + '</td>' +
-      '<td valign="top" width="470" style="width:470px;padding:4px 0 0 30px">' +
+      '<td valign="top" width="470" style="width:470px;padding:12px 0 0 30px">' +
       '<div style="font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:' + ink + ';padding-bottom:' + (S.showRole && S.role ? '5px' : '14px') + '">' + esc(S.name) + '</div>' +
       (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:' + ink + ';padding-bottom:14px">' + esc(S.role) + '</div>' : '') +
       '<div style="font-size:13px;line-height:1.7">' +
@@ -356,7 +362,7 @@
       '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
       '<tr>' +
       '<td width="' + iw + '" valign="top" style="width:' + iw + 'px">' + frame(iw, ih) + '</td>' +
-      '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding-left:' + pad + 'px">' +
+      '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding:12px 0 0 ' + pad + 'px">' +
       '<div style="font-size:19px;font-weight:600;line-height:1.25;color:' + ink + '">' + esc(S.name) + '</div>' +
       (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:' + ink + ';padding-top:5px">' + esc(S.role) + '</div>' : '') +
       '<div style="font-size:13px;line-height:1.7;padding-top:14px">' +
