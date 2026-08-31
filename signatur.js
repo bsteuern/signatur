@@ -324,7 +324,7 @@
     var a   = 'color:' + lk + ';text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
       '<tr><td valign="top" width="96" style="width:96px">' + frame(96,117) + '</td>' +
-      '<td valign="middle" width="504" style="width:504px;padding-left:20px">' +
+      '<td valign="top" width="504" style="width:504px;padding:12px 0 0 20px">' +
       '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
       (S.showRole && S.role ? '<span style="color:' + mid + ';font-size:11px;letter-spacing:.07em"> &middot; ' + esc(S.role) + '</span>' : '') + '</div>' +
       '<div style="font-size:13px;line-height:1.7">' +
@@ -332,8 +332,10 @@
       '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><span style="color:' + mid + '"> &middot; </span>' +
       '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
       '</div>' +
-      '</td></tr>' +
-      '<tr><td colspan="2" style="padding-top:14px">' + hr(600, line) +
+      /* Der Fusstext steht bewusst eingerueckt in der rechten Spalte,
+         buendig mit dem Namen. Er passt dort, weil die Spalte 484 px
+         breit ist und die laengste Pflichtzeile in Arial 406 px braucht. */
+      '<div style="padding-top:12px">' + hr(484, line) + '</div>' +
       '<div style="padding-top:10px;font-size:11px;line-height:1.6;color:' + mid + '">' + legalLines().join('<br>') + '</div>' +
       '</td></tr></table>';
   }
@@ -354,30 +356,43 @@
     var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     var kurz = S.variant === 'short';
-    /* Beide Fassungen nutzen dieselbe Kachelgroesse, damit ein einziger
-       1:1-Bildersatz genuegt. */
-    var iw = 130, ih = 158, pad = 30;
+    var iw = kurz ? 96 : 130, ih = kurz ? 117 : 158, pad = kurz ? 20 : 30;
 
     return '<div style="width:600px;font-family:' + FONT + '">' +
       '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
       '<tr>' +
       '<td width="' + iw + '" valign="top" style="width:' + iw + 'px">' + frame(iw, ih) + '</td>' +
       '<td width="' + (600 - iw) + '" valign="top" style="width:' + (600 - iw) + 'px;padding:12px 0 0 ' + pad + 'px">' +
-      '<div style="font-size:19px;font-weight:600;line-height:1.25;color:' + ink + '">' + esc(S.name) + '</div>' +
-      (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:' + ink + ';padding-top:5px">' + esc(S.role) + '</div>' : '') +
-      '<div style="font-size:13px;line-height:1.7;padding-top:14px">' +
-      (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';font-weight:500;text-decoration:none">' + esc(S.phone) + '</a><br>' : '') +
-      '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><br>' +
-      '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
-      (!kurz && S.showLinkedin && li ? '<span style="color:' + mid + '"> &middot; </span><a href="' + esc(li) + '" style="' + a + '">LinkedIn</a>' : '') +
-      (!kurz ? '<br><span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' : '') +
-      '</div>' +
+      /* Kurzfassung einzeilig, genau wie in der Fassung fuer Gmail und
+         Outlook, damit die Antwortsignatur ueberall gleich aussieht. */
+      (kurz
+        ? '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
+          (S.showRole && S.role ? '<span style="color:' + mid + ';font-size:11px;letter-spacing:.07em"> &middot; ' + esc(S.role) + '</span>' : '') + '</div>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';text-decoration:none">' + esc(S.phone) + '</a><span style="color:' + mid + '"> &middot; </span>' : '') +
+          '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><span style="color:' + mid + '"> &middot; </span>' +
+          '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
+          '</div>'
+        : '<div style="font-size:19px;font-weight:600;line-height:1.25;color:' + ink + '">' + esc(S.name) + '</div>' +
+          (S.showRole && S.role ? '<div style="font-size:11px;font-weight:600;letter-spacing:.07em;color:' + ink + ';padding-top:5px">' + esc(S.role) + '</div>' : '') +
+          '<div style="font-size:13px;line-height:1.7;padding-top:14px">' +
+          (S.showPhone && S.phone ? '<a href="' + esc(tel) + '" style="color:' + ink + ';font-weight:500;text-decoration:none">' + esc(S.phone) + '</a><br>' : '') +
+          '<a href="mailto:' + esc(S.email) + '" style="' + a + '">' + esc(S.email) + '</a><br>' +
+          '<a href="' + esc(KANZLEI.websiteUrl) + '" style="' + a + '">' + esc(KANZLEI.website) + '</a>' +
+          (S.showLinkedin && li ? '<span style="color:' + mid + '"> &middot; </span><a href="' + esc(li) + '" style="' + a + '">LinkedIn</a>' : '') +
+          '<br><span style="color:' + mid + '">' + esc(KANZLEI.webTail) + '</span>' +
+          '</div>') +
       (!kurz && S.showCta && cta && S.ctaText
         ? '<div style="border-top:1px solid ' + line + ';margin-top:14px;padding-top:12px;font-size:13px"><a href="' + esc(cta) + '" style="' + a + '">' + esc(S.ctaText) + ' &rarr;</a></div>'
         : '') +
+      /* Kurzfassung: Fusstext eingerueckt in der rechten Spalte,
+         buendig mit dem Namen. Lange Fassung: ueber die volle Breite. */
+      (kurz
+        ? '<div style="border-top:1px solid ' + line + ';margin-top:12px;padding-top:10px;font-size:11px;line-height:1.6;color:' + mid + '">' + legalLines().join('<br>') + '</div>'
+        : '') +
       '</td></tr></table>' +
-      '<div style="border-top:1px solid ' + line + ';margin-top:20px;padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' +
-      legalLines().join('<br>') + '</div>' +
+      (kurz ? ''
+        : '<div style="border-top:1px solid ' + line + ';margin-top:20px;padding-top:12px;font-size:11px;line-height:1.65;color:' + mid + '">' + legalLines().join('<br>') + '</div>') +
       '</div>';
   }
 
