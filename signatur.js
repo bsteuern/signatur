@@ -162,7 +162,9 @@
     ctaText: KANZLEI.ctaText,
     ctaUrl:  KANZLEI.ctaUrl,
     linkedin:'',
-    showRole:true, showPhone:true, showCta:true, showLinkedin:false,
+    gruss:'Viele Grüße',
+    zusatz:'',                 /* '', 'i.A.', 'i.V.' oder 'ppa.' */
+    showRole:true, showPhone:true, showCta:true, showLinkedin:false, showGruss:true,
     colorIndex:0,
     emblemPick:null,
     sugPage:0,
@@ -273,6 +275,30 @@
     return out;
   }
 
+  /* Grussformel oberhalb des Signaturblocks.
+     Der Vertretungszusatz gehoert an diese Stelle, direkt vor den Namen,
+     also dorthin, wo im Brief die Unterschrift stuende. Im Signaturblock
+     darunter waere er ein Titel, und das ist inhaltlich etwas anderes. */
+  function grussName(){
+    return (S.zusatz ? esc(S.zusatz) + ' ' : '') + esc(S.name);
+  }
+  function grussHtml(spalten){
+    if(!(S.showGruss && (S.gruss || S.zusatz))) return '';
+    var inner = (S.gruss ? esc(S.gruss) + '<br>' : '') + grussName();
+    var stil = 'padding-bottom:22px;font-size:14px;line-height:1.7;color:#0E0C1C';
+    return spalten
+      ? '<tr><td colspan="2" style="' + stil + '">' + inner + '</td></tr>'
+      : '<div style="' + stil.replace('padding-bottom','margin-bottom') + '">' + inner + '</div>';
+  }
+  function grussText(){
+    if(!(S.showGruss && (S.gruss || S.zusatz))) return [];
+    var l = [];
+    if(S.gruss) l.push(S.gruss);
+    l.push((S.zusatz ? S.zusatz + ' ' : '') + S.name);
+    l.push('');
+    return l;
+  }
+
   function frame(w, h){
     return '<img src="' + esc(emblemUrl()) + '" width="' + w + '" height="' + h + '" alt="b&rsquo;steuern"' +
            ' style="display:block;width:' + w + 'px;height:' + h + 'px;border:0;background:#FFFFFF">';
@@ -301,6 +327,7 @@
     var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
+      grussHtml(true) +
       '<tr><td valign="top" width="130" style="width:130px">' + frame(130,158) + '</td>' +
       '<td valign="top" width="470" style="width:470px;padding:12px 0 0 30px">' +
       '<div style="font-size:19px;font-weight:600;letter-spacing:-.015em;line-height:1.25;color:' + ink + ';padding-bottom:' + (S.showRole && S.role ? '5px' : '14px') + '">' + esc(S.name) + '</div>' +
@@ -328,6 +355,7 @@
     var tel = 'tel:' + String(S.phone||'').replace(/[^+0-9]/g,'');
     var a   = 'color:' + lk + ';text-decoration:none';
     return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse;font-family:' + FONT + '">' +
+      grussHtml(true) +
       '<tr><td valign="top" width="96" style="width:96px">' + frame(96,117) + '</td>' +
       '<td valign="top" width="504" style="width:504px;padding:9px 0 0 20px">' +
       '<div style="font-size:14px;line-height:1.7;color:' + ink + '"><span style="font-weight:600">' + esc(S.name) + '</span>' +
@@ -365,6 +393,7 @@
     var oben = Math.round(iw*10/110);   /* siehe Kommentar ueber fullHtml */
 
     return '<div style="width:600px;font-family:' + FONT + '">' +
+      grussHtml(false) +
       '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
       '<tr>' +
       '<td width="' + iw + '" valign="top" style="width:' + iw + 'px">' + frame(iw, ih) + '</td>' +
@@ -405,7 +434,7 @@
   function sigHtml(){ return S.variant === 'short' ? shortHtml() : fullHtml(); }
 
   function plainText(){
-    var l = [S.name];
+    var l = grussText().concat([S.name]);
     if(S.showRole && S.role) l.push(S.role);
     if(S.showPhone && S.phone) l.push(S.phone);
     l.push(S.email);
@@ -662,6 +691,18 @@
         check('LinkedIn', 'showLinkedin'),
         S.showLinkedin ? field('', 'linkedin', { ph:'https://www.linkedin.com/in/…' }) : null,
         S.showLinkedin ? el('div', { class:'sg-note', text:'Erscheint als Wort „LinkedIn" neben der Website, nur in der langen Fassung.' }) : null
+      ]),
+      el('div', { class:'sg-sub' }, [
+        check('Grußformel', 'showGruss'),
+        S.showGruss ? field('', 'gruss', { ph:'Viele Grüße' }) : null,
+        S.showGruss ? el('div', { class:'sg-lbl', text:'Vertretungszusatz' }) : null,
+        S.showGruss ? el('div', { class:'sg-btns' }, [
+          ['', 'keiner'], ['i.A.', 'i.A.'], ['i.V.', 'i.V.'], ['ppa.', 'ppa.']
+        ].map(function(z){
+          return el('button', { type:'button', class:'sg-btn is-sm' + (S.zusatz === z[0] ? ' is-on' : ''),
+            text:z[1], onclick:function(){ set({ zusatz:z[0] }); } });
+        })) : null,
+        S.showGruss ? el('div', { class:'sg-note', text:'Nur setzen, was für dich zutrifft. Geschäftsführung schreibt keinen Zusatz, ppa. nur bei eingetragener Prokura, i.V. bei Handlungsvollmacht. Im Zweifel leer lassen und Chris fragen.' }) : null
       ]),
       el('div', { class:'sg-sub' }, [
         check('Termin-Zeile', 'showCta'),
