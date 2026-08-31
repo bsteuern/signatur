@@ -24,6 +24,14 @@
      Kopieren gesperrt. */
   var EMBLEM_BASE = 'embleme/';
 
+  /* Zweiter Bildersatz nur fuer Apple Mail.
+     Apple Mail verwirft beim Einfuegen die Attribute width und height.
+     Das Bild faellt dann auf seine natuerliche Groesse zurueck. Deshalb
+     liegt hier ein Satz, dessen natuerliche Groesse bereits die
+     Anzeigegroesse ist, 130 x 158. Damit kann die Groesse nicht mehr
+     kaputtgehen, egal was der Editor mit dem Markup macht. */
+  var EMBLEM_BASE_APPLE = 'embleme-apple/';
+
   /* Kanzleiangaben. Jeder Wert mit einem Platzhalter in
      Guillemets blockiert das Kopieren, bis er ersetzt ist. */
   var KANZLEI = {
@@ -76,8 +84,11 @@
      und ohne neuen jsDelivr-Hash. ------------------------------------ */
   var OVR = window.BSTEUERN_SIG_CONFIG || {};
   if(typeof OVR.emblemBase === 'string' && OVR.emblemBase) EMBLEM_BASE = OVR.emblemBase;
+  if(typeof OVR.emblemBaseApple === 'string' && OVR.emblemBaseApple) EMBLEM_BASE_APPLE = OVR.emblemBaseApple;
+  else if(OVR.emblemBase) EMBLEM_BASE_APPLE = String(OVR.emblemBase).replace(/embleme\/?$/, 'embleme-apple/');
   if(OVR.kanzlei) for(var _k in OVR.kanzlei) KANZLEI[_k] = OVR.kanzlei[_k];
   if(EMBLEM_BASE.slice(-1) !== '/') EMBLEM_BASE += '/';
+  if(EMBLEM_BASE_APPLE.slice(-1) !== '/') EMBLEM_BASE_APPLE += '/';
 
   /* Feste-Adressen-Modus.
      Wer keine 175 Dateien mit berechenbarem Pfad hosten kann, hinterlegt
@@ -196,7 +207,8 @@
   }
   function emblemUrl(){
     if(FIXED_MODE) return String(EMBLEM_URLS[PALETTE[S.colorIndex].key.toLowerCase()] || '');
-    return EMBLEM_BASE + emblemFile(emblemIndex(), S.colorIndex);
+    var base = (S.client === 'apple' && EMBLEM_BASE_APPLE) ? EMBLEM_BASE_APPLE : EMBLEM_BASE;
+    return base + emblemFile(emblemIndex(), S.colorIndex);
   }
 
   /* =================================================================
@@ -336,7 +348,9 @@
     var cta = safeUrl(S.ctaUrl), li = safeUrl(S.linkedin);
     var a   = 'color:' + lk + ';font-weight:500;text-decoration:none';
     var kurz = S.variant === 'short';
-    var iw = kurz ? 96 : 130, ih = kurz ? 117 : 158, pad = kurz ? 20 : 30;
+    /* Beide Fassungen nutzen dieselbe Kachelgroesse, damit ein einziger
+       1:1-Bildersatz genuegt. */
+    var iw = 130, ih = 158, pad = 30;
 
     return '<div style="width:600px;font-family:' + FONT + '">' +
       '<table cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;border-collapse:collapse">' +
@@ -560,8 +574,8 @@
         : 'In Mail bei jedem Konto die passende Signatur auswählen.');
     var list = cl === 'apple'
       ? ['Unten auf „Datei ' + st + ' laden“ drücken.',
-         'Die geladene Datei mit Safari öffnen, nicht mit Chrome. Chrome gibt das Bild beim Kopieren nicht mit.',
-         'In Safari alles markieren mit cmd A, dann kopieren mit cmd C.',
+         'Die geladene Datei mit Chrome öffnen, nicht mit Safari. Safari kopiert das Bild als lokalen Verweis, der in Mail nicht ankommt.',
+         'In Chrome alles markieren mit cmd A, dann kopieren mit cmd C.',
          'Mail öffnen: Einstellungen, Signaturen. Links das b’steuern-Konto wählen, unten auf das Plus, die neue Signatur „' + sigName + '“ nennen.',
          'Wichtig: rechts unten den Haken bei „Standardschrift für E-Mails verwenden“ entfernen. Bleibt er gesetzt, wirft Mail Bild und Formatierung weg.',
          'Ins Signaturfeld klicken, mit cmd A alles markieren und löschen, dann einfügen mit cmd V.',
@@ -715,7 +729,7 @@
         ['gmail','Gmail'], ['outlook','Outlook'], ['apple','Apple Mail']
       ].map(function(c){
         return el('button', { type:'button', class:'sg-btn is-sm' + (S.client === c[0] ? ' is-on' : ''),
-          text:c[1], onclick:function(){ set({ client:c[0], finished:false }); } });
+          text:c[1], onclick:function(){ set({ client:c[0], finished:false }, true); } });
       })),
       el('div', { class:'sg-rowline' }, [
         el('span', { class:'sg-tag is-ind', text:'Schritt ' + S.stage + ' von 2' }),

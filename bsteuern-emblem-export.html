@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>b'steuern Emblem-Export</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;border-radius:0}
+  body{background:#F5EFE3;color:#0E0C1C;font-family:'General Sans',system-ui,-apple-system,'Segoe UI',sans-serif;padding:48px 24px 96px;line-height:1.5}
+  .wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+  h1{font-size:32px;font-weight:600;letter-spacing:-.02em}
+  .lead{color:rgba(14,12,28,.68);max-width:640px}
+  .card{background:#fff;border:1px solid rgba(14,12,28,.12);padding:24px;display:flex;flex-direction:column;gap:16px}
+  .lbl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(14,12,28,.38)}
+  input[type=file]{font:inherit;font-size:14px}
+  button{font:inherit;font-size:14px;font-weight:500;padding:12px 20px;border:1px solid #3D2BD5;background:#3D2BD5;color:#fff;cursor:pointer}
+  button[disabled]{opacity:.35;cursor:not-allowed}
+  button.sec{background:#fff;color:#0E0C1C;border-color:rgba(14,12,28,.2)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .grid{display:flex;flex-wrap:wrap;gap:8px}
+  .grid canvas{border:1px solid rgba(14,12,28,.12);width:55px;height:67px}
+  .msg{font-size:14px;color:#3D2BD5;min-height:20px}
+  .warn{font-size:14px;color:#FF0670}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:#F5EFE3;padding:2px 5px}
+  ol{padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <h1>Emblem-Export</h1>
+    <p class="lead">Einmal-Werkzeug. Erzeugt alle 175 Kacheln (35 Muster x 5 Farben) als PNG und packt sie in eine ZIP-Datei. Die entpackten Dateien lädst du an einen festen Ort hoch, dann trägst du diese Adresse einmal in den Signatur-Generator ein. Danach brauchst du diese Seite nie wieder.</p>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Schritt 1 · Wortmarke laden</div>
+    <div>
+      <div style="font-size:14px;padding-bottom:6px">Wortmarke <b>b&rsquo;steuern</b>, mit indigofarbenem b&rsquo;</div>
+      <input type="file" id="logoA" accept="image/png,image/svg+xml">
+    </div>
+    <div style="font-size:13px;color:rgba(14,12,28,.55)">Dieselbe Wortmarke fuer alle fuenf Farben. Das b&rsquo; bleibt immer Indigo, unabhaengig von der Emblemfarbe. Empfohlen: PNG mit transparentem Hintergrund, mindestens 360 x 88 px.</div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Schritt 2 · Erzeugen</div>
+    <div class="row">
+      <button id="go" disabled>Alle 175 PNGs erzeugen und als ZIP laden</button>
+      <button id="goApple" class="sec" disabled>Apple-Satz erzeugen (1:1, 130 x 158)</button>
+      <button id="preview" class="sec" disabled>Nur Vorschau zeichnen</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Schritt 3 · Hochladen</div>
+    <ol>
+      <li>ZIP entpacken. Du bekommst 175 Dateien nach dem Muster <code>emblem-07-trq@2x.png</code>.</li>
+      <li>Alle in einen Ordner hochladen, der dauerhaft unter <code>https://</code> erreichbar ist. Empfehlung steht in der Hosting-Anleitung.</li>
+      <li>Die Basis-Adresse dieses Ordners in <code>signatur.js</code> unter <code>EMBLEM_BASE</code> eintragen.</li>
+    </ol>
+    <div class="warn">Diese Adressen stehen später in tausenden versendeten Mails. Sie dürfen sich nie wieder ändern.</div>
+  </div>
+
+</div>
+
+<script src="emblem-core.js"></script>
+<script>
+(function(){
+  var imgs = {A:null};
+  var msg = document.getElementById('msg');
+  var grid = document.getElementById('grid');
+
+  function say(t, warn){ msg.textContent = t; msg.style.color = warn ? '#FF0670' : '#3D2BD5'; }
+  function ready(){ return !!imgs.A; }
+  function refresh(){
+    document.getElementById('go').disabled = !ready();
+    document.getElementById('goApple').disabled = !ready();
+    document.getElementById('preview').disabled = !ready();
+  }
+
+  function loadInto(slot, file){
+    var url = URL.createObjectURL(file);
+    var im = new Image();
+    im.onload = function(){ imgs[slot] = im; refresh(); say('Wortmarke geladen (' + im.naturalWidth + ' x ' + im.naturalHeight + ' px).'); };
+    im.onerror = function(){ say('Datei konnte nicht gelesen werden.', true); };
+    im.src = url;
+  }
+  document.getElementById('logoA').addEventListener('change', function(e){ if(e.target.files[0]) loadInto('A', e.target.files[0]); });
+
+  function render(pi, ci, scale){
+    var cv = document.createElement('canvas');
+    cv.width = 110*scale; cv.height = 134*scale;
+    var logo = imgs.A;   /* immer dieselbe Wortmarke, b' bleibt Indigo */
+    drawPolaroid(cv.getContext('2d'), PATTERNS[pi], PALETTE[ci], logo, scale);
+    return cv;
+  }
+
+  document.getElementById('preview').addEventListener('click', function(){
+    grid.innerHTML = '';
+    for(var ci=0; ci<PALETTE.length; ci++){
+      for(var pi=0; pi<7; pi++){
+        var cv = render(pi, ci, 1);
+        cv.title = emblemFile(pi, ci);
+        grid.appendChild(cv);
+      }
+    }
+    say('Vorschau: erste 7 Muster in allen 5 Farben. Insgesamt entstehen ' + (PATTERNS.length*PALETTE.length) + ' Dateien.');
+  });
+
+  /* ---- minimaler ZIP-Writer, ohne Kompression (PNG ist bereits komprimiert) ---- */
+  var CRCT = (function(){
+    var t = new Uint32Array(256);
+    for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; t[n]=c>>>0; }
+    return t;
+  })();
+  function crc32(u8){
+    var c = 0xFFFFFFFF;
+    for(var i=0;i<u8.length;i++) c = CRCT[(c ^ u8[i]) & 0xFF] ^ (c>>>8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zip(files){
+    var parts = [], central = [], offset = 0, enc = new TextEncoder();
+    files.forEach(function(f){
+      var nameB = enc.encode(f.name), data = f.data, crc = crc32(data);
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true);
+      lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+      lh.setUint16(26, nameB.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), nameB, data);
+
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+      ch.setUint16(8, 0, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+      ch.setUint16(28, nameB.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
+      ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nameB);
+      offset += 30 + nameB.length + data.length;
+    });
+    var cSize = central.reduce(function(a,b){ return a + b.length; }, 0);
+    var eo = new DataView(new ArrayBuffer(22));
+    eo.setUint32(0, 0x06054b50, true); eo.setUint16(8, files.length, true);
+    eo.setUint16(10, files.length, true); eo.setUint32(12, cSize, true); eo.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(eo.buffer)]), {type:'application/zip'});
+  }
+
+  async function erzeuge(scale, dateiname, btn){
+    btn.disabled = true;
+    var files = [], total = PATTERNS.length * PALETTE.length, done = 0;
+    try{
+      for(var ci=0; ci<PALETTE.length; ci++){
+        for(var pi=0; pi<PATTERNS.length; pi++){
+          var cv = render(pi, ci, scale);
+          var blob = await new Promise(function(res){ cv.toBlob(res, 'image/png'); });
+          if(!blob) throw new Error('PNG konnte nicht erzeugt werden.');
+          files.push({ name: emblemFile(pi, ci), data: new Uint8Array(await blob.arrayBuffer()) });
+          done++;
+          if(done % 10 === 0){ say('Erzeuge ' + done + ' von ' + total + ' ...'); await new Promise(function(r){ setTimeout(r,0); }); }
+        }
+      }
+      var kb = Math.round(files.reduce(function(a,f){ return a+f.data.length; },0)/1024);
+      var url = URL.createObjectURL(zip(files));
+      var a = document.createElement('a');
+      a.href = url; a.download = dateiname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      say(total + ' PNGs erzeugt, ' + Math.round(110*scale) + ' x ' + Math.round(134*scale) + ' px, zusammen ' + kb + ' kB. ZIP wurde geladen.');
+    }catch(e){
+      say('Abbruch: ' + e.message, true);
+    }
+    btn.disabled = false;
+  }
+
+  /* Normalsatz, dreifach, fuer Gmail und Outlook. */
+  document.getElementById('go').addEventListener('click', function(){
+    erzeuge(3, 'bsteuern-embleme.zip', this);
+  });
+
+  /* Apple-Satz. Echte Groesse gleich Anzeigegroesse, 130 x 158.
+     Apple Mail verwirft beim Einfuegen die width- und height-Attribute,
+     dann faellt das Bild auf seine natuerliche Groesse zurueck. Ist die
+     schon richtig, kann nichts kaputtgehen. */
+  document.getElementById('goApple').addEventListener('click', function(){
+    erzeuge(130/110, 'bsteuern-embleme-apple.zip', this);
+  });
+})();
+</script>
+</body>
+</html>
